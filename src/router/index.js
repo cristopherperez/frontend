@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import SignupView from '../views/SignupView.vue'
+import TodoView from '../views/TodoView.vue'
 
 const routes = [
   {
@@ -8,18 +10,44 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
+    path: '/signup',
+    name: 'signup',
+    component: SignupView
+  },
+  {
+    path: '/todo',
+    name: 'todo',
+    component: TodoView
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+})
+
+const protectedRoutes = [
+  'todo'
+]
+
+router.beforeEach((to, from, next) => {
+  const isProtected = protectedRoutes.includes(to.name);
+  if(isProtected && !localStorage.getItem('token')) {
+    next({
+      path: '/',
+      query: { redirect: to.fullPath }
+    })
+  }
+  else {
+    if(!isProtected && localStorage.getItem('token') && (to.name == 'home' || to.name == 'signup')) {
+      next({
+        path: '/todo'
+      })
+    }
+    else {
+      next()
+    }
+  }
 })
 
 export default router
